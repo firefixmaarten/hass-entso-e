@@ -97,9 +97,11 @@ class EntsoeClient:
                 resolution = period.find(".//resolution").text
 
                 # for now supporting 60 and 15 minutes resolutions (ISO8601 defined)
-                if resolution == "PT60M" or resolution == "PT1H":
+                if resolution == "PT15M":
+                    resolution = "PT15M"
+                elif resolution == "PT60M" or resolution == "PT1H":
                     resolution = "PT60M"
-                elif resolution != "PT15M":
+                else:
                     continue
 
                 response_start = period.find(".//timeInterval/start").text
@@ -130,21 +132,21 @@ class EntsoeClient:
                 else:
                     series.update(self.process_PT15M_points(period, start_time))
 
-                # Now fill in any missing hours
-                current_time = start_time
-                last_price = series[current_time]
+                # # Now fill in any missing hours
+                # current_time = start_time
+                # last_price = series[current_time]
 
-                while current_time < end_time:  # upto excluding! the endtime
-                    if current_time in series:
-                        last_price = series[current_time]  # Update to the current price
-                    else:
-                        _LOGGER.debug(
-                            f"Extending the price {last_price} of the previous hour to {current_time}"
-                        )
-                        series[current_time] = (
-                            last_price  # Fill with the last known price
-                        )
-                    current_time += timedelta(hours=1)
+                # while current_time < end_time:  # upto excluding! the endtime
+                #     if current_time in series:
+                #         last_price = series[current_time]  # Update to the current price
+                #     else:
+                #         _LOGGER.debug(
+                #             f"Extending the price {last_price} of the previous hour to {current_time}"
+                #         )
+                #         series[current_time] = (
+                #             last_price  # Fill with the last known price
+                #         )
+                #     current_time += timedelta(hours=1)
 
         return series
 
@@ -162,6 +164,13 @@ class EntsoeClient:
     # processing quarterly prices -> this is more complex
     def process_PT15M_points(self, period: Element, start_time: datetime):
         positions = {}
+        for point in period.findall(".//Point"):
+            position = point.find(".//position").text
+            price = point.find(".//price.amount").text
+            quarter = int(position) - 1
+            time = start_time + timedelta(minutes=15*quarter)
+            data[time] = float(price)
+        return data
 
         # first store all positions
         for point in period.findall(".//Point"):
