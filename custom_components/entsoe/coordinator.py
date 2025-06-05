@@ -125,7 +125,7 @@ class EntsoeCoordinator(DataUpdateCoordinator):
         if data is not None:
             parsed_data = self.parse_hourprices(data)
             self.logger.debug(
-                f"received pricing data from entso-e for {len(data)} hours"
+                f"received pricing data from entso-e for {len(data)} quarters"
             )
             self.data = parsed_data
             self.filtered_hourprices = self._filter_calculated_hourprices(parsed_data)
@@ -278,10 +278,10 @@ class EntsoeCoordinator(DataUpdateCoordinator):
         elif self.calculation_mode == CALCULATION_MODE["sliding"]:
             now = dt.now().replace(minute=0, second=0, microsecond=0)
             return {hour: price for hour, price in data.items() if hour >= now}
-        # publish >48 hrs of data = calculations made on all data of today and tomorrow (48 hrs)
-        elif self.calculation_mode == CALCULATION_MODE["publish"] and len(data) > 48:
+        # publish >48 hrs of data = calculations made on all data of today and tomorrow (192 quarters)
+        elif self.calculation_mode == CALCULATION_MODE["publish"] and len(data) > 192:
             return {hour: price for hour, price in data.items() if hour >= self.today}
-        # publish <=48 hrs of data = calculations made on all data of yesterday and today (48 hrs)
+        # publish <=48 hrs of data = calculations made on all data of yesterday and today (192 quarters)
         elif self.calculation_mode == CALCULATION_MODE["publish"]:
             return {
                 hour: price

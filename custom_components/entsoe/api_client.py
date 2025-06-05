@@ -110,7 +110,7 @@ class EntsoeClient:
                     .replace(tzinfo=pytz.UTC)
                     .astimezone()
                 )
-                start_time.replace(minute=0)  # ensure we start from the whole hour
+                # start_time.replace(minute=0)  # ensure we start from the whole hour
 
                 response_end = period.find(".//timeInterval/end").text
                 end_time = (
